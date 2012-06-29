@@ -42,19 +42,27 @@ Ext.define('CustomApp', {
     },
 
     _query: function () {
+        var customFilter = Ext.create('Rally.data.QueryFilter', {
+            property: 'ScheduleState',
+            operator: '=',
+            value: 'Accepted'
+        });
+        customFilter =customFilter.or(Ext.create('Rally.data.QueryFilter', {
+            property: 'ScheduleState',
+            operator: '=',
+            value: 'Released'
+        }));
+        customFilter = customFilter.and(Ext.create('Rally.data.QueryFilter', {
+            property: 'Release.Name',
+            operator: '=',
+            value: this.down('#releaseComboBox').getRawValue()
+        }));
+        
         Ext.create('Rally.data.WsapiDataStore', {
             model: 'UserStory',
             autoLoad: true,
-            fetch: ['FormattedID', 'Name'],
-            filters: [{
-                property: 'Release.Name',
-                operator: '=',
-                value: this.down('#releaseComboBox').getRawValue()
-            }, {
-                property: 'ScheduleState',
-                operator: '=',
-                value: 'Accepted'
-            }],
+            fetch: ['FormattedID', 'Name', 'ScheduleState'],
+            filters: customFilter,
             sorters: [{
                 property: 'FormattedID',
                 direction: 'ASC'
@@ -65,22 +73,12 @@ Ext.define('CustomApp', {
             }
         });
 
-        this.down('#releaseInfo').update('<p><b>About this release: </b><br />' + 'Additional information is available <a href="' + Rally.util.Navigation.createRallyDetailUrl(this.down('#releaseComboBox').getValue()) + '" target="_top">here.</a></p>');
-
 
         Ext.create('Rally.data.WsapiDataStore', {
             model: 'Defect',
             autoLoad: true,
-            fetch: ['FormattedID', 'Name'],
-            filters: [{
-                property: 'Release.Name',
-                operator: '=',
-                value: this.down('#releaseComboBox').getRawValue()
-            }, {
-                property: 'ScheduleState',
-                operator: '=',
-                value: 'Accepted'
-            }],
+            fetch: ['FormattedID', 'Name', 'ScheduleState'],
+            filters: customFilter,
             sorters: [{
                 property: 'FormattedID',
                 direction: 'ASC'
@@ -90,6 +88,11 @@ Ext.define('CustomApp', {
                 scope: this
             }
         });
+        
+        this.down('#releaseInfo').update('<p><b>About this release: </b><br />' +
+              'Additional information is available <a href="' + 
+              Rally.util.Navigation.createRallyDetailUrl(this.down('#releaseComboBox').getValue()) + 
+              '" target="_top">here.</a></p>');
     },
 
     _onStoriesDataLoaded: function (store, data) {
@@ -98,7 +101,8 @@ Ext.define('CustomApp', {
         Ext.Array.each(data, function (record) {
             records.push({
                 FormattedID: '<a href="' + Rally.util.Navigation.createRallyDetailUrl(record.get('_ref')) + '" target="_top">' + record.get('FormattedID') + '</a>',
-                Name: record.get('Name')
+                Name: record.get('Name'),
+                ScheduleState: record.get('ScheduleState')
             });
         });
 
@@ -119,6 +123,10 @@ Ext.define('CustomApp', {
                 }, {
                     text: 'Name',
                     dataIndex: 'Name',
+                    flex: 3
+                }, {
+                    text: 'Schedule State',
+                    dataIndex: 'ScheduleState',
                     flex: 1
                 }]
             });
@@ -133,7 +141,8 @@ Ext.define('CustomApp', {
         Ext.Array.each(data, function (record) {
             records.push({
                 FormattedID: '<a href="' + Rally.util.Navigation.createRallyDetailUrl(record.get('_ref')) + '" target="_top">' + record.get('FormattedID') + '</a>',
-                Name: record.get('Name')
+                Name: record.get('Name'),
+                ScheduleState: record.get('ScheduleState')
             });
         });
 
@@ -154,6 +163,10 @@ Ext.define('CustomApp', {
                 }, {
                     text: 'Name',
                     dataIndex: 'Name',
+                    flex: 3
+                }, {
+                    text: 'Schedule State',
+                    dataIndex: 'ScheduleState',
                     flex: 1
                 }]
             });
